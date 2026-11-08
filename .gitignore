@@ -1,0 +1,6 @@
+node_modules/
+test/artifacts.json
+.env
+.env.*
+*.log
+.DS_Store

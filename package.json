@@ -1,0 +1,16 @@
+{
+  "name": "hour-presale-trust",
+  "version": "1.0.0",
+  "private": true,
+  "description": "時數預售信託（$HOUR）：智能合約期中專案，Ethereum Sepolia",
+  "scripts": {
+    "compile": "node test/compile.js",
+    "test": "node test/compile.js && node test/test.js"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "ethers": "^6.13.0",
+    "ganache": "^7.9.2",
+    "solc": "0.8.26"
+  }
+}

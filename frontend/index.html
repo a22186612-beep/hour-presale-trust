@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>時數預售信託</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Josefin+Sans:wght@400;600&display=swap">
+<style>
+:root {
+  --blush: #fadfe4; --blush-2: #ffedf0; --crimson: #b01527; --wine: #8a1422; --teal: #0c4850;
+  --coral: #f46d4f; --pink: #f78390; --sky: #91d6f5; --ink: #2b1d20; --soft: #7d5f65; --line: #e9bfc6;
+  --card: rgba(255, 255, 255, .62); --coral-soft: #ffd9cc; --sky-soft: #dcf1fb; --teal-soft: #d6ebec; --gray-soft: #f1e7e9;
+  --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --latin: "Cormorant Garamond", "Noto Serif TC", serif;
+  --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --label: "Josefin Sans", "Noto Sans TC", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--blush); color: var(--ink); font-family: var(--sans); font-weight: 400; font-size: 15px; line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+/* 背景：左側暈染色塊 + 淡淡的吧台照片 */
+.blobs { position: absolute; top: 0; left: 0; right: 0; height: 1500px; z-index: -2; pointer-events: none; overflow: hidden; }
+.blobs i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .85; }
+.blobs .b1 { width: 420px; height: 420px; left: -160px; top: 18%; background: var(--coral); }
+.blobs .b2 { width: 360px; height: 360px; left: 18%; top: -140px; background: #f6a65c; opacity: .7; }
+.blobs .b3 { width: 380px; height: 380px; left: 22%; top: 8%; background: var(--pink); opacity: .6; }
+.blobs .b4 { width: 340px; height: 340px; left: 30%; bottom: -120px; background: var(--sky); opacity: .75; }
+.photo-bg { position: absolute; right: 0; top: 0; width: 46vw; height: 1100px; z-index: -1; background: center / cover no-repeat; opacity: .13; mix-blend-mode: multiply; pointer-events: none;
+  -webkit-mask-image: linear-gradient(to left, #000 30%, transparent), linear-gradient(to top, transparent, #000 40%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to left, #000 30%, transparent), linear-gradient(to top, transparent, #000 40%); mask-composite: intersect; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; font-family: var(--serif); font-weight: 700; letter-spacing: .02em; }
+.latin { font-family: var(--latin); font-weight: 400; letter-spacing: .01em; }
+.muted { color: var(--soft); font-size: 13px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+td.mono, .row > .mono { white-space: nowrap; }
+a { color: var(--crimson); }
+
+/* 頂部 */
+header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 26px 0 18px; }
+.brand { font-family: var(--label); font-size: 14px; letter-spacing: .14em; color: var(--ink); }
+.brand b { font-weight: 600; }
+.nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; }
+.nav a { font-family: var(--serif); font-size: 14px; color: var(--crimson); text-decoration: none; padding: 6px 2px; border-top: 2px solid transparent; }
+.nav a:hover { border-top-color: var(--crimson); }
+.wallet { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+.dot.bad { background: var(--crimson); }
+
+/* 按鈕：圓角膠囊、圓形、箭頭 */
+.btn { font: inherit; font-size: 14px; letter-spacing: .04em; cursor: pointer; border-radius: 999px; padding: 9px 22px; border: 1px solid var(--teal); background: var(--teal); color: #fff; transition: transform .15s, box-shadow .15s; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(12, 72, 80, .18); }
+.btn.ghost { background: #fff; color: var(--ink); border-color: #b9a2a6; }
+.btn.danger { background: transparent; color: var(--crimson); border-color: var(--crimson); }
+.btn.small { padding: 5px 14px; font-size: 13px; }
+.btn.round { width: 112px; height: 112px; padding: 0; border-radius: 50%; display: inline-grid; place-items: center; text-align: center; line-height: 1.3; font-family: var(--serif); font-size: 16px; }
+.btn.round small { display: block; font-family: var(--latin); font-size: 13px; opacity: .85; font-style: italic; }
+.btn.arrow { border: 0; border-radius: 999px 0 0 999px; padding: 14px 52px 14px 28px; background: #fff; color: var(--crimson); font-family: var(--serif); font-size: 16px; font-weight: 600;
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%); }
+.btn.arrow.solid { background: var(--crimson); color: #fff; }
+.btn:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn:focus-visible, select:focus-visible, input:focus-visible, .slot:focus-visible, .oval:focus-visible { outline: 2px solid var(--crimson); outline-offset: 3px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.stack { display: grid; gap: 10px; }
+
+/* 手繪感橢圓標籤（兩端的星點） */
+.oval { position: relative; display: inline-block; font-family: var(--serif); font-size: 17px; padding: 8px 26px; border: 1.2px solid var(--ink); border-radius: 50%; transform: rotate(-5deg); background: transparent; color: var(--ink); cursor: default; }
+.oval > span { display: inline-block; transform: rotate(5deg); }
+.oval::before, .oval::after { content: "✦"; position: absolute; font-size: 10px; color: var(--ink); line-height: 1; }
+.oval::before { left: 12%; top: -7px; }
+.oval::after { right: 10%; bottom: -7px; }
+button.oval { cursor: pointer; font: inherit; font-family: var(--serif); font-size: 17px; }
+button.oval[aria-pressed="true"] { background: var(--crimson); color: #fff; border-color: var(--crimson); }
+button.oval[aria-pressed="true"]::before, button.oval[aria-pressed="true"]::after { color: var(--crimson); }
+
+/* 首屏：圓形照片 + 自我介紹 */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; padding: 18px 0 40px; }
+@media (max-width: 820px) { .hero { grid-template-columns: 1fr; } }
+.portrait { justify-self: center; width: min(340px, 78vw); aspect-ratio: 1; border-radius: 50%; padding: 12px; background: radial-gradient(circle at 30% 25%, #e7b39c, #8a4b3a 55%, #3d1d17); box-shadow: 0 18px 40px rgba(90, 30, 30, .28), inset 0 0 18px rgba(0,0,0,.4); }
+.portrait img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; box-shadow: inset 0 0 0 2px rgba(255,255,255,.2); }
+.intro { display: grid; gap: 14px; max-width: 460px; }
+.intro .eyebrow { font-family: var(--latin); font-size: 34px; color: #6d6466; line-height: 1.1; }
+.intro h1 { font-size: 26px; }
+.intro .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 16px; font-size: 13px; color: var(--soft); }
+.intro .kv dt { font-family: var(--latin); font-size: 15px; }
+.intro .kv dd { margin: 0; text-align: right; font-family: var(--mono); color: var(--ink); }
+.jump { display: grid; gap: 10px; }
+.jump a { display: block; text-align: center; text-decoration: none; color: var(--ink); background: #fff; border: 1px solid #b9a2a6; border-radius: 999px; padding: 9px; font-size: 14px; font-weight: 500; transition: background .15s; }
+.jump a:hover { background: var(--blush-2); }
+.jump a .latin { font-size: 15px; margin-left: 6px; }
+
+/* 區塊 */
+section.panel { background: var(--card); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 28px; padding: 28px; margin-bottom: 26px; display: grid; gap: 18px; min-width: 0; }
+.ptitle { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+.ptitle h2 { font-size: 24px; }
+.ptitle h2 .latin { font-size: 26px; font-weight: 400; margin-left: 8px; }
+.two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+.card { background: #fff; border-radius: 22px; padding: 20px; display: grid; gap: 12px; min-width: 0; }
+.card.dashed { background: transparent; border: 1.2px dashed var(--crimson); }
+.card h3 { font-size: 18px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; }
+.stat .label { font-size: 12px; color: var(--soft); letter-spacing: .06em; }
+.stat .value { font-family: var(--latin); font-size: 30px; font-weight: 600; line-height: 1.1; font-variant-numeric: lining-nums tabular-nums; }
+.pill { white-space: nowrap; display: inline-block; font-size: 12px; padding: 2px 12px; border-radius: 999px; background: var(--teal-soft); color: var(--teal); }
+.pill.paused, .pill.noshow, .pill.makeupoffered { background: var(--coral-soft); color: #9a3412; }
+.pill.ended, .pill.unfunded, .pill.cancelled { background: #f7d2d7; color: var(--wine); }
+.pill.compensated, .pill.madeup { background: var(--sky-soft); color: #18546e; }
+.pill.dismissed { background: var(--gray-soft); color: var(--soft); }
+.kvs { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; margin: 0; }
+.kvs dt { color: var(--soft); } .kvs dd { margin: 0; }
+.profit { color: var(--teal); font-weight: 700; }
+
+/* 12 週月曆 */
+.calendar { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 560px) { .calendar { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.week { border-radius: 18px; padding: 10px 12px; min-height: 76px; display: grid; align-content: start; font-size: 12px; background: #fff; }
+.week .n { font-family: var(--latin); font-size: 22px; font-weight: 600; line-height: 1; font-variant-numeric: lining-nums; }
+.week.unfunded { background: transparent; border: 1px dashed #c9a9ae; color: var(--soft); }
+.week.locked { background: rgba(255,255,255,.7); color: var(--soft); }
+.week.claimable { background: var(--coral-soft); color: #8a2f12; }
+.week.claimed { background: var(--teal-soft); color: var(--teal); }
+.week.sold { background: var(--sky-soft); color: #18546e; }
+.week.soldclaimed { background: var(--sky-soft); color: #18546e; opacity: .55; }
+.week.burned { background: #f7d2d7; color: var(--wine); text-decoration: line-through; }
+.week.now { box-shadow: 0 0 0 2px var(--crimson); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--soft); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.sw { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+/* 表單 */
+.options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.opt { font: inherit; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 50%; aspect-ratio: 1; padding: 4px; cursor: pointer; display: grid; place-content: center; text-align: center; line-height: 1.25; max-width: 104px; justify-self: center; width: 100%; }
+.opt[aria-pressed="true"] { background: var(--crimson); border-color: var(--crimson); color: #fff; }
+.opt[aria-pressed="true"] .small { color: #ffe3e7; }
+.opt:disabled { opacity: .35; cursor: not-allowed; }
+.opt .big { font-family: var(--serif); font-size: 16px; font-weight: 700; }
+.opt .small { font-size: 11px; color: var(--soft); }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.field { display: grid; gap: 4px; font-size: 13px; color: var(--soft); }
+.field select, .field input { font: inherit; font-size: 15px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 12px; color: var(--soft); font-weight: 500; }
+.tablewrap { overflow-x: auto; }
+
+/* 酒紅色預約區塊 */
+.band { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); border-radius: 28px; overflow: hidden; margin-bottom: 26px; background: var(--card); }
+@media (max-width: 860px) { .band { grid-template-columns: 1fr; } }
+.band .red { background: var(--crimson); color: #fff; padding: 34px 30px; display: grid; gap: 14px; align-content: center; }
+.band .red h2 { font-size: 26px; color: #fff; }
+.band .red h2 .latin { font-size: 28px; margin-left: 8px; }
+.band .red p { color: #ffdfe4; font-size: 14px; }
+.band .side { padding: 26px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+
+/* 預約時程表 */
+.overlay { position: fixed; inset: 0; background: rgba(60, 20, 28, .45); display: grid; place-items: center; padding: 16px; z-index: 4; }
+.modal { background: var(--blush-2); border-radius: 28px; width: min(980px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 24px; display: grid; gap: 14px; }
+.sched { display: grid; grid-template-columns: 56px repeat(7, minmax(64px, 1fr)); gap: 5px; overflow-x: auto; }
+.sched .dh { font-size: 12px; text-align: center; color: var(--soft); line-height: 1.3; padding-bottom: 4px; }
+.sched .dh b { display: block; font-family: var(--latin); font-size: 18px; color: var(--ink); }
+.sched .hh { font-family: var(--latin); font-size: 15px; color: var(--soft); text-align: right; padding-right: 6px; line-height: 30px; }
+.slot { font: inherit; font-size: 12px; height: 30px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
+.slot.free:hover { border-color: var(--crimson); }
+.slot.sel { background: var(--crimson); border-color: var(--crimson); color: #fff; }
+.slot.taken { background: var(--gray-soft); color: var(--soft); cursor: not-allowed; border-color: transparent; }
+.slot.mine { background: var(--teal-soft); color: var(--teal); cursor: not-allowed; border-color: var(--teal); }
+.slot.held { background: var(--coral-soft); color: #8a2f12; cursor: not-allowed; border-color: transparent; }
+.slot.past { background: transparent; border-style: dashed; color: transparent; cursor: not-allowed; }
+
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); max-width: min(560px, calc(100% - 32px)); z-index: 6; }
+.toast { border-radius: 999px; padding: 10px 22px; font-size: 14px; box-shadow: 0 8px 24px rgba(90, 30, 30, .2); }
+.toast.err { background: var(--crimson); color: #fff; }
+.toast.ok { background: var(--teal); color: #fff; }
+.toast.info { background: #fff; color: var(--ink); }
+.toast .code { font-family: var(--mono); font-size: 11px; opacity: .8; }
+.toast a { color: inherit; }
+.empty { text-align: center; padding: 60px 20px; display: grid; gap: 14px; justify-items: center; }
+footer { text-align: center; font-family: var(--label); font-size: 12px; letter-spacing: .14em; color: var(--soft); padding: 10px 0 40px; }
+</style>
+</head>
+<body>
+<div class="blobs" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i></div>
+<div class="photo-bg" id="photo-bg" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>HOUR</b> Studio with 老六</div>
+    <nav class="nav" id="nav"></nav>
+    <div class="wallet" id="wallet"></div>
+  </header>
+  <main id="app"></main>
+  <footer>時數預售信託 · ETHEREUM SEPOLIA</footer>
+</div>
+<div id="modal"></div>
+<div id="toast" aria-live="polite"></div>
+
+<script src="ethers.umd.min.js"></script>
+<script>if (!window.ethers) document.write('<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"><\/script>');</script>
+<script>
+// ================= 設定：部署後的合約地址 =================
+const CONFIG = window.APP_CONFIG || {
+  chainId: 11155111, // Sepolia
+  usdc: '0x0B8E8FFD77c8c14fDF185CC031d004Ec38B23566', // 沿用期中的 MockUSDC
+  consultants: [
+    // 每位顧問的 $HOUR 合約與信託合約（2026-11-02 由老六部署）
+    { hour: '0x3D9C929F0Cb7Bc9C1eCB19dBa330423d8Db3dB36', trust: '0xdcC4e3118d6840C65473dfD1877A05EEAFb33160', title: '調酒顧問', photo: 'img/dragon-pour.jpg' },
+    { hour: '0x8668eAD423c22898d85c073DAA263f25c21edf37', trust: '0x8F36B835D1FE803a623ca37d7a568bB30e4f35b7', title: '調香顧問', photo: 'img/phoenix-portrait.jpg' },
+  ],
+  // 帳號暱稱（只用在畫面上）
+  people: {
+    '0x4f9eb35E51D477dD71860569f7F2608dC0294A3e': '老六',
+    '0xFE05818780292bCb6a5E843171386D0f11C79714': 'Dragon',
+    '0x2C806b08c8b2e8f5870D96E3754175AAAd20982C': 'Phoenix',
+    '0x23B6Af5cA705FE236303Eed6151E6c96c54b7106': '乾爹',
+    '0x07F2CDE9fF52F834B224F9ff6C995594F847D528': '乾媽',
+  },
+  agencyName: '老六',
+  clientPhotos: { '乾爹': 'img/cocktail.jpg', '乾媽': 'img/shisha.jpg' }, // 客戶頭像，跟顧問的照片分開
+  explorer: 'https://sepolia.etherscan.io',
+};
+const ERRS = [
+  'error NotAgency()', 'error NotConsultant()', 'error NotFunded()', 'error AllFunded()', 'error IsPaused()', 'error IsEnded()',
+  'error NothingToClaim()', 'error InvalidWeeks(uint8 numWeeks)', 'error WeeksNotAvailable(uint8 startWeek)', 'error WeeksNotFunded(uint256 fundedWeeks)',
+  'error PeriodStarted(uint8 startWeek)', 'error PriceOutOfRange(uint256 minPrice, uint256 faceValue)',
+  'error RequestPending()', 'error NoRequest()', 'error AlreadyApproved()', 'error NotListed()', 'error InsiderCannotBuy()', 'error InvalidConfig()',
+  'error InvalidAmount()', 'error NotEnoughStock(uint256 available)', 'error NotParty()', 'error NoProposal()', 'error ProposerCannotConfirm()',
+  'error NotClient()', 'error AlreadyIssued(uint256 nextIssueTime)', 'error ConsultantCannotBook()', 'error InvalidSlotCount()',
+  'error SlotNotOnHour(uint64 slot)', 'error SlotInPast(uint64 slot)', 'error SlotTooFar(uint64 slot)', 'error OutsideOpenHours(uint64 slot)',
+  'error SlotTaken(uint64 slot)', 'error WrongStatus(uint8 status)', 'error TooLateToCancel()', 'error NotStartedYet()', 'error NotOffered(uint64 slot)',
+  'error CannotCompensate()', 'error NoSuchBooking()', 'error ConsultantCannotTransfer()',
+  'error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)',
+  'error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed)',
+];
+const TRUST_ABI = [
+  'function agency() view returns (address)', 'function consultant() view returns (address)', 'function consultantName() view returns (string)',
+  'function hoursPerWeek() view returns (uint256)', 'function shopHours() view returns (uint256)', 'function flexHours() view returns (uint256)',
+  'function shopAvailable() view returns (uint256)', 'function shopSold() view returns (uint256)', 'function pendingPrice() view returns (uint256)', 'function priceProposer() view returns (address)',
+  'function buyHours(uint256 amount)', 'function proposeHourPrice(uint256 newPrice)', 'function confirmHourPrice()', 'function cancelHourPrice()', 'function totalWeeks() view returns (uint256)', 'function weeksPerMonth() view returns (uint256)',
+  'function periodLength() view returns (uint256)', 'function hourPrice() view returns (uint256)', 'function startTime() view returns (uint256)',
+  'function fundedMonths() view returns (uint256)', 'function totalMonths() view returns (uint256)', 'function fundedWeeks() view returns (uint256)',
+  'function monthlyAmount() view returns (uint256)', 'function paused() view returns (bool)', 'function ended() view returns (bool)',
+  'function request() view returns (uint8 startWeek, uint8 numWeeks, uint256 price, bool approved)',
+  'function advancedWeeks() view returns (uint8)', 'function unlockedWeeks() view returns (uint256)',
+  'function faceValue(uint8) view returns (uint256)', 'function suggestedPrice(uint8) view returns (uint256)', 'function isListed() view returns (bool)',
+  'function claimable() view returns (uint256)', 'function buyerClaimable(address) view returns (uint256)', 'function nextUnlockTime() view returns (uint256)',
+  'function getWeeks() view returns (uint8[])', 'function getBuyers() view returns (address[])', 'function balance() view returns (uint256)',
+  'function deposit()', 'function claim()', 'function requestAdvance(uint8 startWeek, uint8 numWeeks, uint256 price)', 'function cancelAdvance()',
+  'function approveAdvance()', 'function rejectAdvance()', 'function buy()', 'function claimBought()',
+  'function proposeEnd()', 'function confirmEnd()', 'function cancelEnd()', 'function endProposer() view returns (address)',
+  'function claimSplit() view returns (uint256 toConsultant, uint256 burned)', 'function CONSULTANT_RESERVE() view returns (uint256)',
+  ...ERRS,
+];
+const HOUR_ABI = [
+  'function symbol() view returns (string)', 'function totalSupply() view returns (uint256)', 'function balanceOf(address) view returns (uint256)',
+  'function allowance(address,address) view returns (uint256)', 'function approve(address,uint256) returns (bool)', 'function transfer(address,uint256) returns (bool)',
+  'function agency() view returns (address)', 'function consultant() view returns (address)', 'function nextIssueTime() view returns (uint256)',
+  'function currentMonth() view returns (uint256)', 'function issuedInMonth(uint256) view returns (bool)',
+  'function getBookings() view returns (tuple(address client, uint64 slot, uint8 status, bool makeup, bool leave)[])',
+  'function paused() view returns (bool)', 'function setPaused(bool)', 'function reschedule(uint256 id, uint64[] slots)',
+  'function getMakeupOffers(uint256) view returns (uint64[])',
+  'function issueMonthly()', 'function book(uint64[] slots)', 'function cancelBooking(uint256 id)', 'function reportNoShow(uint256 id)',
+  'function offerMakeup(uint256 id, uint64[] slots)', 'function acceptMakeup(uint256 id, uint64 slot)', 'function declineMakeup(uint256 id)',
+  'function resolveNoShow(uint256 id, bool valid)',
+  ...ERRS,
+];
+const USDC_ABI = ['function balanceOf(address) view returns (uint256)', 'function allowance(address,address) view returns (uint256)',
+  'function approve(address,uint256) returns (bool)', 'function mint(address,uint256)', ...ERRS];
+
+const twTime = s => new Date(s * 1000).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false });
+// 合約錯誤 → 畫面上的中文說明（R6）
+const ERRORS = {
+  NotAgency: () => '只有經紀人可以做這個操作。',
+  NotConsultant: () => '只有這位顧問本人可以做這個操作。',
+  NotFunded: () => '經紀人還沒存入時數。',
+  AllFunded: () => '整個合約期的時數都已經存入了。',
+  IsPaused: () => '顧問病假暫停中：暫停期間不開放新的預約、商店和預售，顧問也不能領取。已經約好的時段，請顧問用「請假改時間」處理。',
+  ConsultantCannotTransfer: () => '顧問手上的代幣是賠償準備金，不能轉出或賣掉；要賣時數請用商店或預售。',
+  IsEnded: () => '這份合約已經提前解約。',
+  NothingToClaim: () => '目前沒有可領的時數，下一週解鎖後再來。',
+  InvalidWeeks: () => '一次只能預售 1 到 4 週。',
+  WeeksNotAvailable: a => `從第 ${a[0]} 週開始的這段期間有週數已經賣出、銷毀或超出合約期，請換一段。`,
+  WeeksNotFunded: a => `經紀人只存入到第 ${a[0]} 週，還沒存入的週不能預售。`,
+  PeriodStarted: a => `第 ${a[0]} 週已經解鎖了，只能預售還沒解鎖的週。這筆請先撤回再重開。`,
+  PriceOutOfRange: a => `開價要低於面額 ${usd(a[1])}，而且不能低於 ${usd(a[0])}（8 折）。`,
+  RequestPending: () => '已經有一筆預售在進行中，請先撤回或等結果。',
+  NoRequest: () => '目前沒有預售掛單。',
+  AlreadyApproved: () => '你已經同意過了。',
+  NotListed: () => '這筆預售還沒開放（要經紀人同意），或已經被買走、撤回了。',
+  InsiderCannotBuy: () => '經紀人和顧問本人不能購買，請換客戶帳號。',
+  NotClient: () => '這不是你的預約。',
+  AlreadyIssued: a => `這個月已經發行過了，下次可發行時間：${twTime(Number(a[0]))}。`,
+  ConsultantCannotBook: () => '顧問不能預約自己的時間。',
+  InvalidSlotCount: () => '時段數量不對：預約一次 1–20 小時；補課至少要提供 3 個時段。',
+  SlotNotOnHour: () => '時段必須是整點。',
+  SlotInPast: a => `${twTime(Number(a[0]))} 已經過了，請選之後的時段。`,
+  SlotTooFar: () => '只能預約 30 天內的時段。',
+  OutsideOpenHours: a => `${twTime(Number(a[0]))} 不在開放時間（每天 10:00–24:00）。`,
+  SlotTaken: a => `${twTime(Number(a[0]))} 已經有人預約或保留了，請換一個時段。`,
+  WrongStatus: () => '這筆預約目前的狀態不能做這個操作。',
+  TooLateToCancel: () => '時段已經開始，不能取消了。',
+  NotStartedYet: () => '時段還沒開始，開始後才能回報顧問沒出現。',
+  NotOffered: () => '這個時段不在顧問提出的補課時段裡。',
+  CannotCompensate: () => '顧問和經紀人的 $HOUR 都不足 2 顆，暫時無法賠償。',
+  NoSuchBooking: () => '找不到這筆預約。',
+  InvalidConfig: () => '設定不正確（新面額不能是 0，也不能跟現在一樣）。',
+  InvalidAmount: () => '請輸入要買幾小時（至少 1）。',
+  NotEnoughStock: a => `原價商店現在只剩 ${a[0]} 小時，請少買一點，或等下一週解鎖。`,
+  NotParty: () => '只有經紀人和顧問本人可以提出或同意（調價、解約）。',
+  NoProposal: () => '目前沒有待確認的提案。',
+  ProposerCannotConfirm: () => '要另一方確認才算數（雙方簽核），提出的人不能自己同意。',
+  ERC20InsufficientBalance: () => '餘額不足（$HOUR 或 tUSDC）。',
+  ERC20InsufficientAllowance: () => '還沒授權合約使用你的代幣，請先按「授權」。',
+};
+const WEEK = ['pending', 'claimed', 'sold', 'soldclaimed', 'burned'];
+const BSTATUS = ['booked', 'cancelled', 'noshow', 'makeupoffered', 'madeup', 'compensated', 'dismissed'];
+const BTEXT = { booked: '已預約', cancelled: '已取消', noshow: '回報未出現', makeupoffered: '等客戶選補課', madeup: '已改期補課', compensated: '已賠 2 顆', dismissed: '回報被駁回' };
+const HOURS = Array.from({ length: 14 }, (_, i) => 10 + i); // 10:00 … 23:00
+
+const S = { account: null, chainOk: false, cs: [], usdcBal: 0n, busy: false, pick: {}, tab: 0, sched: null, chainTime: Date.now() / 1000, loadedAt: Date.now() / 1000 };
+let provider, signer;
+const $ = id => document.getElementById(id);
+const short = a => a ? a.slice(0, 6) + '…' + a.slice(-4) : '';
+const eq = (a, b) => a && b && a.toLowerCase() === b.toLowerCase();
+const usd = v => Number(ethers.formatUnits(v, 6)).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const chainNow = () => S.chainTime + Date.now() / 1000 - S.loadedAt;
+const ZERO = '0x0000000000000000000000000000000000000000';
+
+function toast(kind, html, ms = 6000) {
+  $('toast').innerHTML = `<div class="toast ${kind}">${html}</div>`;
+  clearTimeout(toast.t);
+  if (ms) toast.t = setTimeout(() => { $('toast').innerHTML = ''; }, ms);
+}
+
+function explain(e) {
+  if (e?.code === 'ACTION_REJECTED' || e?.info?.error?.code === 4001) return ['你在 MetaMask 取消了這筆交易。', ''];
+  if (e?.revert?.name && ERRORS[e.revert.name]) return [ERRORS[e.revert.name](e.revert.args), e.revert.name];
+  const data = e?.data || e?.info?.error?.data?.data || e?.info?.error?.data || e?.error?.data;
+  try { const err = new ethers.Interface(ERRS).parseError(data); if (err && ERRORS[err.name]) return [ERRORS[err.name](err.args), err.name]; } catch {}
+  return [e?.shortMessage || e?.message || '交易失敗', ''];
+}
+
+// 先 staticCall 預演：會被擋下的操作在送出前就顯示中文原因，不浪費 gas
+async function send(contract, fn, args = [], doneMsg, after) {
+  if (S.busy) return;
+  S.busy = true; render();
+  try {
+    await contract[fn].staticCall(...args);
+    toast('info', '請在 MetaMask 確認交易…', 0);
+    const gas = await contract[fn].estimateGas(...args);
+    const tx = await contract[fn](...args, { gasLimit: gas * 13n / 10n });
+    toast('info', `交易已送出，等待上鏈… <a href="${CONFIG.explorer}/tx/${tx.hash}" target="_blank" rel="noopener">在 Etherscan 查看</a>`, 0);
+    await tx.wait();
+    after?.();
+    toast('ok', `${doneMsg} <a href="${CONFIG.explorer}/tx/${tx.hash}" target="_blank" rel="noopener">交易紀錄</a>`);
+    await load();
+  } catch (e) {
+    const [msg, code] = explain(e);
+    toast('err', `${esc(msg)}${code ? `<div class="code">${code}</div>` : ''}`, 8000);
+  } finally { S.busy = false; render(); }
+}
+
+async function connect() {
+  if (!window.ethereum) { toast('err', '找不到 MetaMask。請安裝 MetaMask，並用 http://localhost 開啟這個頁面。', 0); return; }
+  try { await window.ethereum.request({ method: 'eth_requestAccounts' }); await ensureChain(); await setup(); }
+  catch (e) { toast('err', esc(explain(e)[0])); }
+}
+async function pickAccounts() {
+  try { await window.ethereum.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] }); await setup(); }
+  catch (e) { toast('err', esc(explain(e)[0])); }
+}
+async function ensureChain() {
+  const cur = await window.ethereum.request({ method: 'eth_chainId' });
+  if (parseInt(cur, 16) !== CONFIG.chainId) await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x' + CONFIG.chainId.toString(16) }] });
+}
+async function setup() {
+  provider = new ethers.BrowserProvider(window.ethereum);
+  S.chainOk = Number((await provider.getNetwork()).chainId) === CONFIG.chainId;
+  const accts = await provider.send('eth_accounts', []);
+  S.account = accts[0] || null;
+  signer = S.account ? await provider.getSigner(S.account) : null;
+  await load();
+}
+
+async function readConsultant({ hour, trust }) {
+  const t = new ethers.Contract(trust, TRUST_ABI, provider), h = new ethers.Contract(hour, HOUR_ABI, provider), u = new ethers.Contract(CONFIG.usdc, USDC_ABI, provider);
+  const keys = ['agency', 'consultant', 'consultantName', 'hoursPerWeek', 'shopHours', 'flexHours', 'shopAvailable', 'shopSold', 'pendingPrice', 'priceProposer', 'totalWeeks', 'weeksPerMonth', 'periodLength', 'hourPrice', 'startTime',
+    'fundedMonths', 'totalMonths', 'fundedWeeks', 'monthlyAmount', 'paused', 'ended', 'request', 'advancedWeeks',
+    'unlockedWeeks', 'claimable', 'nextUnlockTime', 'getWeeks', 'getBuyers', 'balance', 'isListed', 'endProposer', 'claimSplit', 'CONSULTANT_RESERVE'];
+  const vals = await Promise.all(keys.map(k => t[k]()));
+  const c = Object.fromEntries(keys.map((k, i) => [k, vals[i]]));
+  c.address = trust; c.hour = hour;
+  const me = S.account || ZERO;
+  const [symbol, supply, myHour, agencyHour, consHour, nextIssue, month, bookings, hourAllow, usdcAllow, myBought] = await Promise.all([
+    h.symbol(), h.totalSupply(), h.balanceOf(me), h.balanceOf(c.agency), h.balanceOf(c.consultant), h.nextIssueTime(), h.currentMonth(),
+    h.getBookings(), h.allowance(me, trust), u.allowance(me, trust), t.buyerClaimable(me)]);
+  Object.assign(c, { symbol, supply, myHour, agencyHour, consHour, nextIssue: Number(nextIssue), month: Number(month), hourAllow, usdcAllow, myBought });
+  c.issuedNow = await h.issuedInMonth(month);
+  c.weeks = c.getWeeks.map(Number); c.buyers = c.getBuyers;
+  c.unlocked = Number(c.unlockedWeeks); c.funded = Number(c.fundedWeeks); c.hpw = Number(c.hoursPerWeek);
+  c.shop = Number(c.shopHours); c.flex = Number(c.flexHours); c.stock = Number(c.shopAvailable);
+  c.weekFace = c.hourPrice * c.flexHours; // 預售只賣彈性時數
+  c.split = { mine: Number(c.claimSplit[0]), burn: Number(c.claimSplit[1]) }; c.reserve = Number(c.CONSULTANT_RESERVE);
+  c.req = { start: Number(c.request.startWeek), n: Number(c.request.numWeeks), price: c.request.price, ok: c.request.approved };
+  c.req.weeks = Array.from({ length: c.req.n }, (_, i) => c.req.start + i);
+  c.req.face = c.weekFace * BigInt(c.req.n);
+  c.myWeeks = c.weeks.map((w, i) => i).filter(i => eq(c.buyers[i], S.account));
+  c.freeStarts = c.weeks.map((w, i) => i + 1).filter(n => n > c.unlocked && n <= c.funded && c.weeks[n - 1] === 0);
+  c.bookings = bookings.map((b, id) => ({ id, client: b.client, slot: Number(b.slot), status: BSTATUS[Number(b.status)], makeup: b.makeup, leave: b.leave }));
+  await Promise.all(c.bookings.filter(b => b.status === 'makeupoffered').map(async b => { b.offers = (await h.getMakeupOffers(b.id)).map(Number); }));
+  c.taken = new Map(); // 時段 → 'booked' | 'held'，以及是誰的
+  for (const b of c.bookings) if (b.status !== 'cancelled') c.taken.set(b.slot, { kind: 'booked', client: b.client });
+  for (const b of c.bookings) for (const s of b.offers || []) c.taken.set(s, { kind: 'held', client: b.client });
+  return c;
+}
+
+async function load() {
+  if (!provider || !S.chainOk) return render();
+  try {
+    const live = CONFIG.consultants.filter(x => x.trust !== ZERO);
+    S.cs = await Promise.all(live.map(async x => Object.assign(await readConsultant(x), { title: x.title, photo: x.photo })));
+    S.usdcBal = S.account ? await new ethers.Contract(CONFIG.usdc, USDC_ABI, provider).balanceOf(S.account) : 0n;
+    const blk = await provider.send('eth_getBlockByNumber', ['latest', false]);
+    S.chainTime = Number(blk.timestamp); S.loadedAt = Date.now() / 1000;
+  } catch (e) { toast('err', '讀取合約失敗：' + esc(e.shortMessage || e.message)); }
+  render();
+}
+
+const trustW = c => new ethers.Contract(c.address, TRUST_ABI, signer);
+const hourW = c => new ethers.Contract(c.hour, HOUR_ABI, signer);
+const usdcW = () => new ethers.Contract(CONFIG.usdc, USDC_ABI, signer);
+
+// ================= 畫面 =================
+function roleOf(c) {
+  if (eq(S.account, c.agency)) return 'agency';
+  if (eq(S.account, c.consultant)) return 'consultant';
+  return null;
+}
+const nick = a => { for (const [k, v] of Object.entries(CONFIG.people || {})) if (eq(k, a)) return v; return null; };
+const who = a => nick(a) ? `${esc(nick(a))} <span class="muted mono">${short(a)}</span>` : `<span class="mono">${short(a)}</span>`;
+const pct = (a, b) => b ? `${(Number(a * 10000n / b) / 100).toFixed(1).replace(/\.0$/, '')}%` : '';
+const range = ws => ws.length > 1 ? `第 ${ws[0]}–${ws.at(-1)} 週` : `第 ${ws[0]} 週`;
+function leftUntil(ts) {
+  const left = Math.max(0, Math.round(ts - chainNow()));
+  const h = Math.floor(left / 3600), m = Math.floor(left % 3600 / 60), s = left % 60;
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+}
+const scan = (addr, label) => `<a class="muted" href="${CONFIG.explorer}/address/${addr}" target="_blank" rel="noopener">${label || short(addr)}</a>`;
+const ttl = (zh, en) => `<h2>${zh}<span class="latin">${en}</span></h2>`;
+
+function walletBar() {
+  if (!S.account) return `<button class="btn" id="connect" data-act="connect">連接 MetaMask</button>`;
+  return `<span class="chip"><span class="dot ${S.chainOk ? '' : 'bad'}"></span>${S.chainOk ? 'Sepolia' : '網路錯誤'}</span>
+    <span class="chip mono" title="${S.account}">${short(S.account)}</span>
+    <span class="chip">${usd(S.usdcBal)} tUSDC</span>
+    <button class="btn ghost small" data-act="accounts" title="在 MetaMask 勾選要連到這個網頁的帳號">切換帳號</button>`;
+}
+
+function countdown(c) {
+  const next = Number(c.nextUnlockTime);
+  if (!next) return '';
+  const l = leftUntil(next);
+  return l !== '0:00' ? `第 ${c.unlocked + 1} 週將在 ${l} 後解鎖` : `第 ${c.unlocked + 1} 週解鎖中…`;
+}
+function status(c) {
+  if (Number(c.startTime) === 0) return ['unfunded', '尚未存入'];
+  if (c.ended) return ['ended', '已解約'];
+  if (c.paused) return ['paused', '病假暫停'];
+  return ['', '進行中'];
+}
+
+function calendar(c) {
+  const cells = c.weeks.map((w, i) => {
+    const n = i + 1;
+    let cls = WEEK[w], tag = { claimed: '顧問已領', sold: '已預售', soldclaimed: '承購人已領', burned: '已銷毀' }[cls];
+    if (cls === 'sold' && n <= c.unlocked) tag = '承購人可領';
+    if (cls === 'pending') {
+      if (n > c.funded) [cls, tag] = ['unfunded', '未存入'];
+      else [cls, tag] = n <= c.unlocked && Number(c.startTime) ? ['claimable', '可領'] : ['locked', '未解鎖'];
+    }
+    const t = c.buyers[i] && c.buyers[i] !== ZERO ? ` title="承購人 ${c.buyers[i]}"` : '';
+    return `<div class="week ${cls} ${n === c.unlocked && !c.ended ? 'now' : ''}"${t}><span class="n">${n}</span><span>彈性 ${c.flex}h</span><span>${tag}</span></div>`;
+  }).join('');
+  return `<div class="calendar">${cells}</div>
+    <div class="legend">
+      <span><i class="sw" style="border:1px dashed #c9a9ae"></i>未存入</span>
+      <span><i class="sw" style="background:#fff"></i>未解鎖</span>
+      <span><i class="sw" style="background:var(--coral-soft)"></i>可領</span>
+      <span><i class="sw" style="background:var(--teal-soft)"></i>顧問已領</span>
+      <span><i class="sw" style="background:var(--sky-soft)"></i>已預售</span>
+      <span><i class="sw" style="background:#f7d2d7"></i>解約銷毀</span>
+    </div>
+    <p class="muted" style="font-size:12px">每週 ${c.hpw} 小時 = 原價 ${c.shop} 小時（解鎖後進原價商店）＋ 彈性 ${c.flex} 小時（月曆上的狀態）。</p>`;
+}
+
+function stats(c) {
+  const [cls, text] = status(c);
+  return `<div class="stats">
+    <div class="stat"><div class="label">狀態</div><div><span class="pill ${cls}">${text}</span></div></div>
+    <div class="stat"><div class="label">每小時面額</div><div class="value">${usd(c.hourPrice)}</div></div>
+    <div class="stat"><div class="label">商店庫存（小時）</div><div class="value">${c.stock}</div></div>
+    <div class="stat"><div class="label">合約內 ${esc(c.symbol)}</div><div class="value">${c.balance}</div></div>
+    <div class="stat"><div class="label">已存入（月）</div><div class="value">${c.fundedMonths}/${c.totalMonths}</div></div>
+    <div class="stat"><div class="label">已解鎖（週）</div><div class="value">${c.unlocked}/${c.totalWeeks}</div></div>
+    <div class="stat"><div class="label">下次解鎖</div><div class="value">${Number(c.nextUnlockTime) ? leftUntil(Number(c.nextUnlockTime)) : '—'}</div></div>
+    <div class="stat"><div class="label">累計預售（週）</div><div class="value">${c.advancedWeeks}</div></div>
+  </div>`;
+}
+
+function hero({ photo, eyebrow, line, desc, kv, links }) {
+  return `<section class="hero" id="role-banner">
+    <div class="portrait"><img src="${photo}" alt=""></div>
+    <div class="intro">
+      <div class="eyebrow">${eyebrow}</div>
+      <h1>${line}</h1>
+      <p class="muted">${desc}</p>
+      <dl class="kv">${kv.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+      <div class="jump">${links.map(([href, zh, en]) => `<a href="#${href}">${zh}<span class="latin">${en}</span></a>`).join('')}</div>
+    </div></section>`;
+}
+
+function requestBox(c, role) {
+  if (!c.req.n) return '';
+  const btns = role === 'consultant' ? `<button class="btn ghost" id="cancel-${c.address}" data-act="cancel" data-c="${c.address}">撤回預售</button>`
+    : `${c.req.ok ? '' : `<button class="btn" id="approve-${c.address}" data-act="approve" data-c="${c.address}">同意開放承購</button>`}
+       <button class="btn danger" id="reject-${c.address}" data-act="reject" data-c="${c.address}">${c.req.ok ? '下架' : '拒絕'}</button>`;
+  return `<div class="card dashed">
+    <h3>${role === 'consultant' ? '你的預售掛單' : `${esc(c.consultantName)} 想預售時數`}${c.req.ok ? ' <span class="pill">已開放承購</span>' : ''}</h3>
+    <dl class="kvs"><dt>期間</dt><dd>${range(c.req.weeks)}的彈性時數（${c.req.n * c.flex} 小時，面額 ${usd(c.req.face)}）</dd>
+      <dt>開價</dt><dd>${usd(c.req.price)} tUSDC（面額的 ${pct(c.req.price, c.req.face)}），承購人直接付給${role === 'consultant' ? '你' : '顧問'}</dd>
+      <dt>期限</dt><dd>${c.req.start <= c.unlocked ? '第一週已解鎖，這筆已失效，請撤回' : `第 ${c.req.start} 週解鎖前（還有 ${leftUntil(Number(c.startTime) + (c.req.start - 1) * Number(c.periodLength))}）`}</dd></dl>
+    <p class="muted">${c.req.ok ? '經紀人已同意，正在等承購人購買。' : '經紀人同意這個期間與價格後，才會開放給承購人。'}</p>
+    <div class="row">${btns}</div></div>`;
+}
+
+// ---------- 調價：經紀人與顧問雙方同意 ----------
+function priceBox(c) {
+  const pend = c.pendingPrice > 0n, mineProp = pend && eq(c.priceProposer, S.account);
+  const other = eq(c.priceProposer, c.agency) ? '經紀人' : '顧問';
+  const body = !pend
+    ? `<div class="fields"><label class="field">新的每小時面額（tUSDC）<input id="price-${c.address}" data-c="${c.address}" inputmode="decimal" value="${esc(S.pick['hp' + c.address] ?? usd(c.hourPrice).replace(/,/g, ''))}"></label></div>
+       <div class="row"><button class="btn ghost small" id="propose-${c.address}" data-act="proposePrice" data-c="${c.address}" ${c.ended || S.busy ? 'disabled' : ''}>提出調價</button></div>`
+    : mineProp
+    ? `<p>你提出改成 <b>${usd(c.pendingPrice)}</b>，等${eq(c.priceProposer, c.agency) ? '顧問' : '經紀人'}確認。</p>
+       <div class="row"><button class="btn ghost small" id="cancelprice-${c.address}" data-act="cancelPrice" data-c="${c.address}" ${S.busy ? 'disabled' : ''}>撤回提案</button></div>`
+    : `<p>${other}提出把面額從 ${usd(c.hourPrice)} 改成 <b>${usd(c.pendingPrice)}</b>。</p>
+       <div class="row"><button class="btn small" id="confirmprice-${c.address}" data-act="confirmPrice" data-c="${c.address}" ${c.req.n || S.busy ? 'disabled' : ''}>同意調價</button>
+         <button class="btn ghost small" id="cancelprice-${c.address}" data-act="cancelPrice" data-c="${c.address}" ${S.busy ? 'disabled' : ''}>不同意</button></div>
+       ${c.req.n ? '<p class="muted">有預售掛單時不能調價，先處理掛單。</p>' : ''}`;
+  return `<div class="card" id="pricebox-${c.address}">
+    <h3>每小時面額 ${usd(c.hourPrice)} tUSDC</h3>
+    <p class="muted">調價要經紀人和顧問雙方同意：一方提出，另一方確認才生效。只影響之後的商店價格和預售；已賣出的 ${esc(c.symbol)} 一樣換 1 小時。</p>
+    ${body}</div>`;
+}
+
+function endBox(c) {
+  const pend = c.endProposer !== ZERO, mineProp = pend && eq(c.endProposer, S.account);
+  const other = eq(c.endProposer, c.agency) ? '經紀人' : '顧問';
+  const body = c.ended ? '<p>已提前解約：商店關閉，未售出的時數已銷毀；已賣出的仍屬於承購人。</p>'
+    : !Number(c.startTime) ? `<div class="row"><button class="btn danger small" id="proposeend-${c.address}" disabled>提出提前解約</button></div><p class="muted">經紀人存入第 1 個月後才能提出。</p>`
+    : !pend ? `<div class="row"><button class="btn danger small" id="proposeend-${c.address}" data-act="proposeEnd" data-c="${c.address}" ${S.busy ? 'disabled' : ''}>提出提前解約</button></div>`
+    : mineProp ? `<p>你已提出提前解約，等${eq(c.endProposer, c.agency) ? '顧問' : '經紀人'}確認。</p>
+       <div class="row"><button class="btn ghost small" id="cancelend-${c.address}" data-act="cancelEnd" data-c="${c.address}" ${S.busy ? 'disabled' : ''}>撤回</button></div>`
+    : `<p><b>${other}提出提前解約。</b>同意後無法復原：商店關閉，還沒解鎖、還沒賣出的時數銷毀。</p>
+       <div class="row"><button class="btn danger small" id="confirmend-${c.address}" data-act="confirmEnd" data-c="${c.address}" ${S.busy ? 'disabled' : ''}>同意解約</button>
+         <button class="btn ghost small" id="cancelend-${c.address}" data-act="cancelEnd" data-c="${c.address}" ${S.busy ? 'disabled' : ''}>不同意</button></div>`;
+  return `<div class="card" id="endbox-${c.address}">
+    <h3>提前解約</h3>
+    <p class="muted">要經紀人和顧問雙方同意：一方提出，另一方確認才生效。已賣出的時數不受影響。</p>
+    ${body}</div>`;
+}
+
+// ---------- 經紀人 ----------
+function agencyPanel(c) {
+  const monthly = Number(c.monthlyAmount), canIssue = !c.issuedNow;
+  const needAllow = c.hourAllow < c.monthlyAmount, short_ = c.agencyHour < c.monthlyAmount;
+  const allFunded = Number(c.fundedMonths) >= Number(c.totalMonths);
+  const disputes = c.bookings.filter(b => b.status === 'noshow');
+  return `<div class="card">
+      <h3>每月發行與存入</h3>
+      <p>你手上有 <b class="mono">${c.agencyHour}</b> 顆 ${esc(c.symbol)}，總發行量 <span class="mono">${c.supply}</span>。每月只能發行一次、一次 100 顆，存入後就是下一個月的 4 週 × ${c.hpw} 小時（每週原價 ${c.shop} 小時進商店、彈性 ${c.flex} 小時）。</p>
+      <p class="muted">${canIssue ? '本月還沒發行。' : `本月已發行，下次可發行：${twTime(c.nextIssue)}（還有 ${leftUntil(c.nextIssue)}）`}</p>
+      <div class="row">
+        <button class="btn ghost" id="issue-${c.address}" data-act="issue" data-c="${c.address}" ${canIssue && !S.busy ? '' : 'disabled'}>發行本月 100 顆</button>
+        <button class="btn ghost" id="allowhour-${c.address}" data-act="allowHour" data-c="${c.address}" ${needAllow && !allFunded && !short_ && !S.busy ? '' : 'disabled'}>${needAllow ? `1. 授權 ${monthly} 顆` : '已授權'}</button>
+        <button class="btn" id="deposit-${c.address}" data-act="deposit" data-c="${c.address}" ${allFunded || c.ended || short_ || S.busy ? 'disabled' : ''}>${allFunded ? '已全部存入' : `2. 存入第 ${Number(c.fundedMonths) + 1} 個月`}</button>
+      </div>
+      ${short_ && !allFunded && !c.ended ? `<p class="muted">手上不足 ${monthly} 顆，等下個月發行後才能存入下一個月。</p>` : ''}
+    </div>
+    ${requestBox(c, 'agency')}
+    <div class="card">
+      <h3>控制權</h3>
+      <div class="row">
+        <button class="btn ghost" id="pause-${c.address}" data-act="pause" data-c="${c.address}" data-v="${!c.paused}" ${c.ended || S.busy ? 'disabled' : ''}>${c.paused ? '病假結束，恢復' : '病假暫停'}</button>
+      </div>
+      <p class="muted">${countdown(c)}${c.paused ? ' 暫停中：不開放新的預約、商店和預售；已經約好的時段由顧問「請假改時間」，客戶可以改約或拿 2 顆賠償。' : ' 病假暫停只擋新的預約和買賣，已經約好的時段不會自動取消。'}</p>
+    </div>
+    ${priceBox(c)}
+    ${endBox(c)}
+    ${disputes.length ? `<div class="card dashed"><h3>待裁決的違約回報</h3>${disputes.map(b => `<div class="row"><span class="mono">${twTime(b.slot)}</span><span>${who(b.client)} 回報顧問沒出現</span>
+        <button class="btn small" id="valid-${c.address}-${b.id}" data-act="resolve" data-c="${c.address}" data-id="${b.id}" data-v="true">成立，賠 2 顆</button>
+        <button class="btn ghost small" id="dismiss-${c.address}-${b.id}" data-act="resolve" data-c="${c.address}" data-id="${b.id}" data-v="false">駁回</button></div>`).join('')}
+        <p class="muted">顧問可以先提出至少 3 個補課時段；顧問認為回報不實時，由你裁決。</p></div>` : ''}`;
+}
+
+// ---------- 顧問 ----------
+function consultantPanel(c) {
+  const funded = Number(c.startTime) > 0, open = funded && !c.ended && !c.paused;
+  const pk = S.pick[c.address] ||= { n: 1 };
+  const fits = st => Array.from({ length: pk.n }, (_, i) => st + i).every(w => c.freeStarts.includes(w));
+  const starts = c.freeStarts.filter(fits);
+  if (!starts.includes(pk.start)) pk.start = starts[0];
+  const sugg = n => c.weekFace * BigInt(n) * BigInt(100 - 5 * n) / 100n;
+  if (pk.price == null || pk.priceFor !== pk.n) { pk.price = usd(sugg(pk.n)).replace(/,/g, ''); pk.priceFor = pk.n; }
+  const face = c.weekFace * BigInt(pk.n);
+  let price = 0n; try { price = ethers.parseUnits(String(pk.price || '0'), 6); } catch {}
+  const opts = [1, 2, 3, 4].map(n => `<button class="opt" id="opt-${n}" data-act="pick" data-c="${c.address}" data-n="${n}" aria-pressed="${pk.n === n}" ${c.req.n ? 'disabled' : ''}>
+      <span class="big">${n} 週</span><span class="small">${n * c.flex} 小時</span><span class="small">建議 ${usd(sugg(n))}</span></button>`).join('');
+  return `<section class="panel" id="hours">
+      <div class="ptitle">${ttl('時數', 'Hours')}<span class="row">${scan(c.hour, esc(c.symbol))}${scan(c.address, '信託合約')}</span></div>
+      ${stats(c)}
+      <div class="two"><div class="stack">${calendar(c)}</div>
+        <div class="card" style="justify-items:center;text-align:center">
+          <p>彈性時數現在可領 <b class="mono">${c.claimable}</b> 顆：<b class="mono">${c.split.mine}</b> 顆進你的準備金${c.split.burn ? `、<b class="mono">${c.split.burn}</b> 顆超過上限會銷毀` : ''}</p>
+          <p class="muted">準備金 ${c.consHour} / ${c.reserve} 顆。準備金只用來賠償客戶，不能轉出；滿了之後再領的彈性時數會銷毀。想換成現金，請在解鎖前用下方「預售」折價賣出。</p>
+          <button class="btn round" id="claim" data-act="claim" data-c="${c.address}" ${S.busy ? 'disabled' : ''}>領取<small>Claim</small></button>
+          <p class="muted">${c.paused ? '經紀人暫停中：解鎖的週會先累積，恢復後一次領回。' : countdown(c) || (funded ? '' : '經紀人還沒存入時數。')}</p>
+          <p class="muted">原價商店：已賣出 <b>${c.shopSold}</b> 小時、還有 <b>${c.stock}</b> 小時可賣（客戶付的 tUSDC 直接進你的錢包）。</p>
+        </div></div>
+    </section>
+    <section class="panel" id="presale">
+      <div class="ptitle">${ttl('預售', 'Presale')}<span class="muted">一筆最多連續 4 週，開價不能低於面額 8 折</span></div>
+      ${requestBox(c, 'consultant') || `
+      <p class="muted">急需現金時，把還沒解鎖的幾週「彈性時數」（每週 ${c.flex} 小時）打折賣掉，tUSDC 立刻進你的錢包；那幾週解鎖時改由承購人領。只能賣經紀人已經存入的週。</p>
+      <div class="options">${opts}</div>
+      <div class="fields">
+        <label class="field">從第幾週開始
+          <select id="start" data-c="${c.address}">${starts.map(w => `<option value="${w}" ${w === pk.start ? 'selected' : ''}>第 ${w} 週${pk.n > 1 ? `–第 ${w + pk.n - 1} 週` : ''}</option>`).join('') || '<option>沒有可預售的期間</option>'}</select></label>
+        <label class="field">開價（tUSDC）<input id="price" data-c="${c.address}" inputmode="decimal" value="${esc(pk.price)}"></label>
+      </div>
+      <p class="muted" id="price-hint">面額 ${usd(face)}（${pk.n * c.flex} 小時 × ${usd(c.hourPrice)}），開價要低於面額、不能低於 ${usd(face * 8n / 10n)}（8 折）。${price ? `目前是面額的 ${pct(price, face)}。` : ''}</p>
+      <div class="row"><button class="btn" id="request" data-act="request" data-c="${c.address}" ${!open || !pk.start || S.busy ? 'disabled' : ''}>請經紀人審核</button></div>`}
+      ${priceBox(c)}
+      ${endBox(c)}
+    </section>`;
+}
+
+function bookingLedger(c) {
+  const by = new Map();
+  for (const b of c.bookings) {
+    const r = by.get(b.client) || { spent: 0, active: 0, cancelled: 0, comp: 0 };
+    if (!b.makeup) r.spent++;
+    if (b.status === 'booked') r.active++;
+    if (b.status === 'cancelled') r.cancelled++;
+    if (b.status === 'compensated') r.comp += 2;
+    by.set(b.client, r);
+  }
+  const now = chainNow();
+  const upcoming = c.bookings.filter(b => b.status === 'booked' && b.slot + 3600 > now).sort((a, b) => a.slot - b.slot);
+  const reports = c.bookings.filter(b => b.status === 'noshow' || (b.status === 'makeupoffered' && !b.leave));
+  const leaves = c.bookings.filter(b => b.status === 'makeupoffered' && b.leave);
+  return `<div class="band" id="booking">
+    <div class="red"><h2>預約<span class="latin">Bookings</span></h2>
+      <p>每兌換 1 小時就銷毀 1 顆 ${esc(c.symbol)}。這裡看得到誰兌換了幾小時、接下來的行程，以及客戶的違約回報。</p></div>
+    <div class="side">
+      <h3>誰兌換了幾小時</h3>
+      ${by.size ? `<div class="tablewrap"><table><thead><tr><th>客戶</th><th>兌換（消耗）</th><th>有效預約</th><th>取消（不退）</th><th>違約賠償</th></tr></thead><tbody>
+        ${[...by].map(([a, r]) => `<tr><td>${who(a)}</td><td class="mono">${r.spent} 小時</td><td class="mono">${r.active}</td><td class="mono">${r.cancelled}</td><td class="mono">${r.comp ? `+${r.comp} 顆` : '—'}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="muted">還沒有人兌換。</p>'}
+      <h3>接下來的預約</h3>
+      ${upcoming.length ? `<div class="tablewrap"><table><tbody>${upcoming.map(b => `<tr><td class="mono">${twTime(b.slot)}</td><td>${who(b.client)}</td><td>${b.makeup ? '<span class="pill madeup">補課</span>' : ''}</td>
+        <td>${b.slot > now ? `<button class="btn ghost small" id="leave-${b.id}" data-act="openLeave" data-c="${c.address}" data-id="${b.id}" ${S.busy ? 'disabled' : ''}>請假改時間</button>` : ''}</td></tr>`).join('')}</tbody></table></div>
+        <p class="muted">臨時有事（例如病假）要在時段開始前按「請假改時間」，提供至少 3 個新時段；客戶不接受的話，從你的準備金賠 2 顆。</p>` : '<p class="muted">沒有即將到來的預約。</p>'}
+      ${leaves.length ? `<div class="card dashed"><h3>請假改時間，等客戶選</h3>${leaves.map(b => `<div class="row"><span class="mono">${twTime(b.slot)}</span>${who(b.client)}<span class="muted">新時段：${b.offers.map(twTime).join('、')}</span></div>`).join('')}</div>` : ''}
+      ${reports.length ? `<div class="card dashed"><h3>客戶回報你沒出現</h3>${reports.map(b => `<div class="row"><span class="mono">${twTime(b.slot)}</span>${who(b.client)}<span class="pill ${b.status}">${BTEXT[b.status]}</span>
+         ${b.status === 'noshow' ? `<button class="btn small" id="offer-${b.id}" data-act="openOffer" data-c="${c.address}" data-id="${b.id}">提供補課時段（至少 3 個）</button>` : `<span class="muted">已提供：${b.offers.map(twTime).join('、')}</span>`}</div>`).join('')}
+         <p class="muted">客戶不接受補課的話，合約會從你的錢包轉 2 顆給客戶。若回報不實，請經紀人裁決。</p></div>` : ''}
+    </div></div>`;
+}
+
+// ---------- 承購人／客戶 ----------
+function marketListing(c) {
+  if (!(c.isListed && !c.paused && !c.ended)) return '';
+  const price = c.req.price, face = c.req.face, need = c.usdcAllow < price, stale = c.req.start <= c.unlocked;
+  return `<div class="card">
+    <div class="ptitle"><h3>${esc(c.consultantName)} · ${range(c.req.weeks)}</h3>${scan(c.address)}</div>
+    <dl class="kvs"><dt>你付</dt><dd>${usd(price)} tUSDC（面額的 ${pct(price, face)}，直接付給顧問）</dd>
+      <dt>你會拿到</dt><dd>${c.req.n * c.flex} 顆 ${esc(c.symbol)} = ${c.req.n * c.flex} 小時服務（每週解鎖時領 ${c.flex} 顆）</dd>
+      <dt>每小時成本</dt><dd class="profit">${usd(price / BigInt(c.req.n * c.flex))} tUSDC（原價 ${usd(c.hourPrice)}）</dd>
+      <dt>購買期限</dt><dd>${stale ? '已過期（第一週已解鎖）' : `第 ${c.req.start} 週解鎖前，還有 ${leftUntil(Number(c.startTime) + (c.req.start - 1) * Number(c.periodLength))}`}</dd></dl>
+    <p class="muted">經紀人已審核這筆報價。代幣解鎖後可以自己預約，也可以轉讓給別人。</p>
+    <div class="row">
+      <button class="btn ghost" id="allowbuy-${c.address}" data-act="allowBuy" data-c="${c.address}" ${need && !S.busy ? '' : 'disabled'}>${need ? `1. 授權 ${usd(price)} tUSDC` : '已授權'}</button>
+      <button class="btn" id="buy-${c.address}" data-act="buy" data-c="${c.address}" ${S.busy || stale ? 'disabled' : ''}>2. 購買</button>
+    </div></div>`;
+}
+
+function shopCard(c) {
+  const q = Math.max(1, Math.floor(Number(S.pick['q' + c.address] || 1)) || 1);
+  const cost = c.hourPrice * BigInt(q), need = c.usdcAllow < cost, open = !c.paused && !c.ended && c.stock > 0;
+  return `<div class="card" id="shop-${c.address}">
+    <h3>原價商店：現在就能買</h3>
+    <p>${c.ended ? '已解約，商店關閉。' : c.paused ? '顧問病假暫停中，暫時不能買。' : `還有 <b>${c.stock}</b> 小時，每小時 <b>${usd(c.hourPrice)}</b> tUSDC，錢直接付給 ${esc(c.consultantName)}。`}</p>
+    <div class="fields"><label class="field">買幾小時<input id="shopqty-${c.address}" data-c="${c.address}" type="number" min="1" max="${c.stock}" value="${q}"></label></div>
+    <p class="muted">共 ${usd(cost)} tUSDC，買完 ${esc(c.symbol)} 直接進你的錢包，可以馬上預約。</p>
+    <div class="row">
+      <button class="btn ghost" id="allowshop-${c.address}" data-act="allowShop" data-c="${c.address}" ${need && open && !S.busy ? '' : 'disabled'}>${need ? `1. 授權 ${usd(cost)} tUSDC` : '已授權'}</button>
+      <button class="btn" id="buyshop-${c.address}" data-act="buyShop" data-c="${c.address}" ${open && !S.busy ? '' : 'disabled'}>2. 原價購買</button>
+    </div></div>`;
+}
+
+function clientPanel(c) {
+  const mine = c.bookings.filter(b => eq(b.client, S.account)).sort((a, b) => b.slot - a.slot);
+  const now = chainNow();
+  const owned = c.myWeeks.length ? `<div class="card" style="justify-items:center;text-align:center">
+      <h3>我買下的第 ${c.myWeeks.map(i => i + 1).join('、')} 週</h3>
+      <p>現在可領 <b class="mono">${c.myBought}</b> 顆 <span class="muted">（暫停、解約都不影響）</span></p>
+      <button class="btn round" id="claimbought-${c.address}" data-act="claimBought" data-c="${c.address}" ${S.busy || !c.myBought ? 'disabled' : ''}>領取<small>${esc(c.symbol)}</small></button>
+      <p class="muted">${countdown(c)}</p></div>` : '';
+  const rows = mine.map(b => {
+    let act = '';
+    if (b.status === 'booked' && b.slot > now) act = `<button class="btn ghost small" id="cancelb-${b.id}" data-act="cancelBooking" data-c="${c.address}" data-id="${b.id}">取消（不退代幣）</button>`;
+    if (b.status === 'booked' && b.slot <= now) act = `<button class="btn danger small" id="noshow-${b.id}" data-act="noShow" data-c="${c.address}" data-id="${b.id}">顧問沒出現</button>`;
+    if (b.status === 'makeupoffered') act = `<div class="row">${b.offers.filter(s => s > now).map(s => `<button class="btn small" id="accept-${b.id}-${s}" data-act="accept" data-c="${c.address}" data-id="${b.id}" data-s="${s}">補課 ${twTime(s)}</button>`).join('')}
+        <button class="btn ghost small" id="decline-${b.id}" data-act="decline" data-c="${c.address}" data-id="${b.id}">都不要，改拿 2 顆</button></div>`;
+    return `<tr><td class="mono">${twTime(b.slot)}</td><td><span class="pill ${b.status}">${b.leave && b.status === 'makeupoffered' ? '顧問請假，請改選時間' : b.leave && b.status === 'compensated' ? '顧問請假，已賠 2 顆' : BTEXT[b.status]}</span>${b.makeup ? ' <span class="pill madeup">補課</span>' : ''}</td><td>${act}</td></tr>`;
+  }).join('');
+  return `<section class="panel" id="presale">
+      <div class="ptitle">${ttl('買時數', 'Shop & Presale')}${scan(c.hour, esc(c.symbol) + ' 合約')}</div>
+      <div class="two"><div class="stack">${shopCard(c)}${marketListing(c) || '<div class="card"><h3>折價預售</h3><p class="muted">目前沒有開放的預售。顧問急需現金、把未來幾週的彈性時數打折掛單，經紀人審核後會出現在這裡。</p></div>'}</div>
+        <div class="stack">${owned || `<div class="card"><p class="muted">買下的時數會在每週解鎖時出現在這裡，讓你領取 ${esc(c.symbol)}。</p></div>`}</div></div>
+    </section>
+    <div class="band" id="booking">
+      <div class="red"><h2>預約<span class="latin">Booking</span></h2>
+        <p>開放時間每天 10:00–24:00（台灣時間），每格 1 小時。預約幾小時就消耗幾顆 ${esc(c.symbol)}，取消不退代幣。顧問沒出現或請假時，可以改約補課，或改拿 2 顆賠償。</p>
+        ${c.paused ? `<p><b>${esc(c.consultantName)} 病假暫停中，暫時不開放預約。</b></p>` : ''}
+        <div><button class="btn arrow" id="openbook-${c.address}" data-act="openBook" data-c="${c.address}" ${c.myHour > 0n && !c.paused && !S.busy ? '' : 'disabled'}>前往預約登記</button></div>
+        <p>你持有 <b>${c.myHour}</b> 顆 ${esc(c.symbol)}${c.myHour > 0n ? '' : '，先買下時數或請朋友轉給你'}</p></div>
+      <div class="side"><h3>我的預約</h3>
+        ${mine.length ? `<div class="tablewrap"><table><thead><tr><th>時段</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="muted">還沒有預約。</p>'}</div>
+    </div>`;
+}
+
+// ---------- 預約時程表 ----------
+function twParts(ts) { const d = new Date(ts * 1000 + 8 * 3600 * 1000); return { y: d.getUTCFullYear(), m: d.getUTCMonth(), d: d.getUTCDate() }; }
+const slotOf = (p, dayOffset, hour) => Date.UTC(p.y, p.m, p.d + dayOffset, hour) / 1000 - 8 * 3600;
+function schedModal() {
+  const sc = S.sched; if (!sc) return '';
+  const c = S.cs.find(x => x.address === sc.c); if (!c) return '';
+  const now = chainNow(), base = twParts(now), first = sc.page * 7;
+  const days = Array.from({ length: 7 }, (_, i) => first + i);
+  const fmt = (t, o) => new Date(t * 1000).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', ...o });
+  const head = days.map(o => { const t = slotOf(base, o, 12); return `<div class="dh"><b>${fmt(t, { month: 'numeric', day: 'numeric' })}</b>${fmt(t, { weekday: 'short' })}</div>`; }).join('');
+  const grid = HOURS.map(h => `<div class="hh">${h}:00</div>` + days.map(o => {
+    const s = slotOf(base, o, h), tk = c.taken.get(s);
+    let cls = 'free', label = '', dis = '';
+    if (s <= now || s > now + 30 * 86400) { cls = 'past'; dis = 'disabled'; }
+    else if (tk) { cls = tk.kind === 'held' ? 'held' : eq(tk.client, S.account) ? 'mine' : 'taken'; label = { held: '保留', mine: '我的', taken: '已約' }[cls]; dis = 'disabled'; }
+    else if (sc.sel.includes(s)) { cls = 'sel'; label = '✓'; }
+    return `<button class="slot ${cls}" data-act="toggleSlot" data-s="${s}" ${dis} aria-label="${twTime(s)} ${label || '可預約'}" title="${twTime(s)}">${label}</button>`;
+  }).join('')).join('');
+  const n = sc.sel.length;
+  const footer = sc.mode === 'book'
+    ? `<p>已選 <b>${n}</b> 小時，會消耗 <b>${n}</b> 顆 ${esc(c.symbol)}（你有 ${c.myHour} 顆）。</p>
+       <div class="row"><button class="btn" id="confirm-book" data-act="confirmBook" ${n && BigInt(n) <= c.myHour && n <= 20 && !S.busy ? '' : 'disabled'}>確認預約 ${n} 小時</button><button class="btn ghost" data-act="closeSched">取消</button></div>`
+    : sc.mode === 'leave'
+    ? `<p>請假改時間：原本 ${twTime(c.bookings[sc.id].slot)} 的預約會釋出。已選 <b>${n}</b> 個新時段，至少要 3 個；客戶也可以不接受，改拿 2 顆賠償。</p>
+       <div class="row"><button class="btn" id="confirm-leave" data-act="confirmLeave" ${n >= 3 && n <= 20 && !S.busy ? '' : 'disabled'}>改時間：提供 ${n} 個新時段</button><button class="btn ghost" data-act="closeSched">取消</button></div>`
+    : `<p>已選 <b>${n}</b> 個時段，至少要 3 個。客戶選好之前，這些時段會先保留。</p>
+       <div class="row"><button class="btn" id="confirm-offer" data-act="confirmOffer" ${n >= 3 && n <= 20 && !S.busy ? '' : 'disabled'}>提供 ${n} 個補課時段</button><button class="btn ghost" data-act="closeSched">取消</button></div>`;
+  return `<div class="overlay" data-act="overlay"><div class="modal" role="dialog" aria-modal="true" aria-label="預約時程表">
+    <div class="ptitle">${sc.mode === 'book' ? ttl(`預約 ${esc(c.consultantName)}`, 'Schedule') : sc.mode === 'leave' ? ttl('請假改時間', 'Reschedule') : ttl('選補課時段', 'Make-up')}
+      <div class="row"><button class="btn ghost small" data-act="schedPage" data-v="-1" ${sc.page ? '' : 'disabled'}>上一週</button><button class="btn ghost small" data-act="schedPage" data-v="1" ${sc.page < 4 ? '' : 'disabled'}>下一週</button></div></div>
+    <div class="legend"><span><i class="sw" style="background:#fff;border:1px solid var(--line)"></i>可選</span><span><i class="sw" style="background:var(--crimson)"></i>已選</span>
+      <span><i class="sw" style="background:var(--teal-soft)"></i>我的預約</span><span><i class="sw" style="background:var(--gray-soft)"></i>別人已約</span><span><i class="sw" style="background:var(--coral-soft)"></i>補課保留</span><span>台灣時間</span></div>
+    <div class="sched"><div></div>${head}${grid}</div>
+    ${footer}</div></div>`;
+}
+
+function render() {
+  $('wallet').innerHTML = walletBar();
+  $('modal').innerHTML = S.account && S.chainOk ? schedModal() : '';
+  const app = $('app'), nav = $('nav');
+  const setBg = src => { $('photo-bg').style.backgroundImage = src ? `url(${src})` : ''; };
+  nav.innerHTML = '';
+  if (!window.ethers) { app.innerHTML = `<section class="panel empty"><p>載入 ethers.js 失敗，請確認網路連線。</p></section>`; return; }
+  if (!S.account) { setBg('img/bartender-glow.jpg'); app.innerHTML = `<section class="panel empty"><div class="eyebrow latin" style="font-size:40px">Welcome</div><h2>把顧問未來的時間，做成可以預售的代幣</h2><p class="muted">經紀人、顧問和客戶用各自的 MetaMask 帳號登入，看到的畫面會不一樣。</p><button class="btn" data-act="connect">連接 MetaMask</button></section>`; return; }
+  if (!S.chainOk) { app.innerHTML = `<section class="panel empty"><h2>請切換到 Sepolia 測試網</h2><button class="btn" id="switch" data-act="switch">切換網路</button></section>`; return; }
+  if (!S.cs.length) { app.innerHTML = `<section class="panel empty"><p class="muted">讀取合約中…（如果一直停在這裡，請確認 CONFIG 裡的合約地址）</p></section>`; return; }
+  const mine = S.cs.map(c => [c, roleOf(c)]).filter(([, r]) => r);
+  const role = mine[0]?.[1];
+  const links = arr => { nav.innerHTML = arr.map(([h, t]) => `<a href="#${h}">${t}</a>`).join(''); return arr; };
+  if (role === 'agency') {
+    setBg('img/tools.jpg');
+    const name = nick(S.account) || CONFIG.agencyName || '經紀人';
+    links(mine.map(([c]) => [`c-${c.address}`, c.consultantName]));
+    app.innerHTML = hero({ photo: 'img/tools.jpg', eyebrow: 'Agent', line: `你好，我是經紀人${esc(name)}。`,
+        desc: `我幫 ${mine.length} 位顧問發行時數、審核預售報價；顧問病假時按暫停，有違約爭議時由我裁決。`,
+        kv: [['Role', '出資人'], ['Wallet', short(S.account)], ['tUSDC', usd(S.usdcBal)]],
+        links: mine.map(([c]) => [`c-${c.address}`, `${esc(c.consultantName)}・${esc(c.title || '顧問')}`, 'Manage']) })
+      + mine.map(([c]) => `<section class="panel" id="c-${c.address}">
+          <div class="ptitle">${ttl(esc(c.consultantName), esc(c.title || 'Consultant'))}<span class="row">${scan(c.hour, esc(c.symbol))}${scan(c.address, '信託合約')}</span></div>
+          ${stats(c)}<div class="two"><div class="stack">${calendar(c)}</div><div class="stack">${agencyPanel(c)}</div></div></section>`).join('');
+    return;
+  }
+  if (role === 'consultant') {
+    const c = mine[0][0];
+    setBg(c.photo);
+    links([['hours', '時數'], ['presale', '預售'], ['booking', '預約']]);
+    app.innerHTML = hero({ photo: c.photo || 'img/dragon-pour.jpg', eyebrow: 'About Me', line: `我是${esc(c.title || '顧問')} ${esc(c.consultantName)}。`,
+        desc: `每週開放 ${c.hpw} 小時：${c.shop} 小時放進原價商店，${c.flex} 小時是彈性時數，急需現金時可以打折預售。1 顆 ${esc(c.symbol)} 就是我的 1 小時。`,
+        kv: [['Role', '受益人'], ['Wallet', short(S.account)], [esc(c.symbol), `${c.consHour} 顆`], ['tUSDC', usd(S.usdcBal)]],
+        links: [['hours', '時數', 'Hours'], ['presale', '預售', 'Presale'], ['booking', '預約', 'Bookings']] })
+      + consultantPanel(c) + bookingLedger(c);
+    return;
+  }
+  // 經紀人和顧問以外的帳號：客戶／承購人
+  if (S.tab >= S.cs.length) S.tab = 0;
+  const pre = S.cs[S.tab];
+  setBg('img/cocktail.jpg');
+  links([['presale', '買時數'], ['booking', '預約']]);
+  const tabs = `<div class="row" role="tablist" style="gap:18px">${S.cs.map((c, i) => `<button class="oval" id="tab-${i}" data-act="tab" data-v="${i}" aria-pressed="${S.tab === i}"><span>${esc(c.title || c.consultantName)}・${esc(c.consultantName)}${c.isListed && !c.paused && !c.ended ? ' ✦' : ''}</span></button>`).join('')}</div>`;
+  app.innerHTML = hero({ photo: (CONFIG.clientPhotos || {})[nick(S.account)] || 'img/cocktail.jpg', eyebrow: 'Hello', line: `今天想找哪位顧問？`,
+      desc: `在原價商店直接買顧問現在的時數，或趁顧問折價預售時買下未來的時數；再拿 ${esc(pre.symbol)} 預約他的時間。`,
+      kv: [['Role', '承購人／客戶'], ['Wallet', short(S.account)], [esc(pre.symbol), `<span id="myhour">${pre.myHour}</span> 顆`], ['tUSDC', usd(S.usdcBal)]],
+      links: [['presale', '買時數', 'Shop'], ['booking', '預約登記', 'Booking']] })
+    + `<section class="panel"><div class="ptitle">${tabs}<button class="btn ghost" id="mintbuyer" data-act="mint" ${S.busy ? 'disabled' : ''}>領測試幣 10,000 tUSDC</button></div></section>`
+    + clientPanel(pre);
+}
+
+const findC = addr => S.cs.find(x => x.address === addr);
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.disabled) return;
+  const act = el.dataset.act, c = findC(el.dataset.c), id = Number(el.dataset.id);
+  if (act === 'overlay') { if (e.target === el) { S.sched = null; render(); } return; }
+  if (act === 'connect') return connect();
+  if (act === 'accounts') return pickAccounts();
+  if (act === 'switch') return ensureChain().catch(err => toast('err', esc(explain(err)[0])));
+  if (act === 'tab') { S.tab = Number(el.dataset.v); return render(); }
+  if (act === 'pick') { (S.pick[c.address] ||= {}).n = Number(el.dataset.n); return render(); }
+  if (act === 'mint') return send(usdcW(), 'mint', [S.account, 10_000_000_000n], '已領到 10,000 tUSDC。');
+  // 經紀人
+  if (act === 'issue') return send(hourW(c), 'issueMonthly', [], `已發行本月 100 顆 ${esc(c.symbol)}。`);
+  if (act === 'allowHour') return send(hourW(c), 'approve', [c.address, c.monthlyAmount], '已授權，下一步按「存入」。');
+  if (act === 'deposit') return send(trustW(c), 'deposit', [], `已存入第 ${Number(c.fundedMonths) + 1} 個月的 ${c.monthlyAmount} 小時。`);
+  if (act === 'approve') return send(trustW(c), 'approveAdvance', [], '已同意，這筆預售開放承購。');
+  if (act === 'reject') return send(trustW(c), 'rejectAdvance', [], c.req.ok ? '已下架這筆預售。' : '已拒絕這筆預售。');
+  if (act === 'pause') { const v = el.dataset.v === 'true'; return send(hourW(c), 'setPaused', [v], v ? '已暫停（病假）：不開放新的預約和買賣。' : '已恢復。'); }
+  if (act === 'proposeEnd') return send(trustW(c), 'proposeEnd', [], '已提出提前解約，等對方確認。');
+  if (act === 'confirmEnd') return send(trustW(c), 'confirmEnd', [], '雙方同意，已提前解約；未售出的時數已銷毀。');
+  if (act === 'cancelEnd') return send(trustW(c), 'cancelEnd', [], '解約提案已取消，合約繼續。');
+  if (act === 'proposePrice') {
+    let p; try { p = ethers.parseUnits(String(S.pick['hp' + c.address] ?? usd(c.hourPrice).replace(/,/g, '')).trim(), 6); } catch { return toast('err', '面額格式不對，請輸入數字，例如 80。'); }
+    return send(trustW(c), 'proposeHourPrice', [p], `已提出把面額改成 ${usd(p)} tUSDC，等對方確認。`, () => { delete S.pick['hp' + c.address]; });
+  }
+  if (act === 'confirmPrice') return send(trustW(c), 'confirmHourPrice', [], `雙方同意：每小時面額改成 ${usd(c.pendingPrice)} tUSDC。`);
+  if (act === 'cancelPrice') return send(trustW(c), 'cancelHourPrice', [], '調價提案已取消，面額不變。');
+  if (act === 'allowShop' || act === 'buyShop') {
+    const q = Math.floor(Number(S.pick['q' + c.address] || 1));
+    if (!(q >= 1)) return toast('err', '請輸入要買幾小時（至少 1）。');
+    return act === 'allowShop'
+      ? send(usdcW(), 'approve', [c.address, c.hourPrice * BigInt(q)], '已授權，下一步按「原價購買」。')
+      : send(trustW(c), 'buyHours', [q], `已用原價買 ${q} 小時，付了 ${usd(c.hourPrice * BigInt(q))} tUSDC 給 ${esc(c.consultantName)}。`);
+  }
+  if (act === 'resolve') { const v = el.dataset.v === 'true'; return send(hourW(c), 'resolveNoShow', [id, v], v ? '回報成立，已賠 2 顆給客戶。' : '已駁回這筆回報。'); }
+  // 顧問
+  if (act === 'claim') return send(trustW(c), 'claim', [], '領取成功！');
+  if (act === 'request') {
+    const pk = S.pick[c.address]; let price;
+    try { price = ethers.parseUnits(String(pk.price).trim(), 6); } catch { return toast('err', '開價格式不對，請輸入數字，例如 1600。'); }
+    return send(trustW(c), 'requestAdvance', [pk.start, pk.n, price], `已送出：${range(Array.from({ length: pk.n }, (_, i) => pk.start + i))} 開價 ${usd(price)}，等經紀人審核。`);
+  }
+  if (act === 'cancel') return send(trustW(c), 'cancelAdvance', [], '已撤回預售。');
+  if (act === 'openOffer') { S.sched = { c: c.address, mode: 'offer', id, sel: [], page: 0 }; return render(); }
+  if (act === 'openLeave') { S.sched = { c: c.address, mode: 'leave', id, sel: [], page: 0 }; return render(); }
+  // 承購人／客戶
+  if (act === 'allowBuy') return send(usdcW(), 'approve', [c.address, c.req.price], '已授權，下一步按「購買」。');
+  if (act === 'buy') return send(trustW(c), 'buy', [], `成交！已付 ${usd(c.req.price)} tUSDC 給 ${esc(c.consultantName)}，買下${range(c.req.weeks)}。`);
+  if (act === 'claimBought') return send(trustW(c), 'claimBought', [], `已領取 ${esc(c.symbol)}。`);
+  if (act === 'openBook') { S.sched = { c: c.address, mode: 'book', sel: [], page: 0 }; return render(); }
+  if (act === 'cancelBooking') return send(hourW(c), 'cancelBooking', [id], '已取消預約（代幣不退）。');
+  if (act === 'noShow') return send(hourW(c), 'reportNoShow', [id], '已回報，等顧問提出補課時段。');
+  if (act === 'accept') return send(hourW(c), 'acceptMakeup', [id, Number(el.dataset.s)], `已改約 ${twTime(Number(el.dataset.s))} 補課。`);
+  if (act === 'decline') return send(hourW(c), 'declineMakeup', [id], '已改拿 2 顆賠償。');
+  // 時程表
+  if (act === 'toggleSlot') { const s = Number(el.dataset.s), sel = S.sched.sel; const i = sel.indexOf(s); i >= 0 ? sel.splice(i, 1) : sel.push(s); return render(); }
+  if (act === 'schedPage') { S.sched.page += Number(el.dataset.v); return render(); }
+  if (act === 'closeSched') { S.sched = null; return render(); }
+  if (act === 'confirmBook' || act === 'confirmOffer' || act === 'confirmLeave') {
+    const sc = S.sched, cc = findC(sc.c), slots = [...sc.sel].sort((a, b) => a - b);
+    const done = () => { S.sched = null; };
+    if (act === 'confirmLeave') return send(hourW(cc), 'reschedule', [sc.id, slots], `已請假改時間，提供 ${slots.length} 個新時段給客戶選。`, done);
+    return act === 'confirmBook'
+      ? send(hourW(cc), 'book', [slots], `預約成功：${slots.length} 小時，已消耗 ${slots.length} 顆 ${esc(cc.symbol)}。`, done)
+      : send(hourW(cc), 'offerMakeup', [sc.id, slots], `已提供 ${slots.length} 個補課時段，等客戶選擇。`, done);
+  }
+});
+
+document.addEventListener('change', e => {
+  // 商店數量改完就重畫，讓總價和「授權」按鈕跟著更新
+  if (e.target.id?.startsWith('shopqty-')) render();
+});
+document.addEventListener('input', e => {
+  const c = findC(e.target.dataset.c);
+  if (!c) return;
+  if (e.target.id === 'price-' + c.address) { S.pick['hp' + c.address] = e.target.value; return; }
+  if (e.target.id === 'shopqty-' + c.address) { S.pick['q' + c.address] = e.target.value; return; }
+  const pk = S.pick[c.address] ||= { n: 1 };
+  if (e.target.id === 'price') {
+    pk.price = e.target.value;
+    const face = c.weekFace * BigInt(pk.n || 1); let price = 0n; try { price = ethers.parseUnits(String(pk.price || '0'), 6); } catch {}
+    const hint = $('price-hint');
+    if (hint) hint.textContent = `面額 ${usd(face)}（${pk.n * c.flex} 小時 × ${usd(c.hourPrice)}），開價要低於面額、不能低於 ${usd(face * 8n / 10n)}（8 折）。${price ? `目前是面額的 ${pct(price, face)}。` : ''}`;
+  }
+  if (e.target.id === 'start') { pk.start = Number(e.target.value); render(); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.sched) { S.sched = null; render(); } });
+
+if (window.ethereum) {
+  window.ethereum.on?.('accountsChanged', () => setup());
+  window.ethereum.on?.('chainChanged', () => setup());
+  provider = new ethers.BrowserProvider(window.ethereum);
+  setup().catch(() => render());
+}
+const typing = () => ['INPUT', 'SELECT'].includes(document.activeElement?.tagName);
+// 開著預約時程表時不自動重畫，避免捲動位置跳掉
+setInterval(() => { if (!S.busy && !typing() && !S.sched) load(); }, 8000);
+setInterval(() => { if (S.cs.length && !S.busy && !typing() && !S.sched) render(); }, 1000);
+render();
+</script>
+</body>
+</html>
